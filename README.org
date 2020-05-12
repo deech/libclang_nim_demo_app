@@ -1,0 +1,39 @@
+#+TITLE: README
+
+* Introduction
+This repo contains a small [[https://nim-lang.org][Nim]] app that uses [[https://clang.llvm.org/docs/Tooling.html][libclang]] to parse out a C++ header file and print the [[https://en.cppreference.com/w/cpp/language/enum][enum]] values.
+
+Currently it only works on Macos and Linux but Windows support is coming.
+
+The app is not meant to be flashy, but to show how get started with [[https://github.com/deech/libclang_bindings][the Nim Libclang bindings]] and [[https://github.com/deech/libclang-static-build][libclang-static-build]] so you can cannibalize it for your own needs to make easily deployable low dependency x-platform apps.
+* Getting Started
+You will need ~cmake~, ~git~, and a very recent version of Nim probably compiled from [[https://github.com/nim-lang/Nim][Github]]; [[https://github.com/dom96/choosenim#choosenim][choosenim]] is currently the easiest way build your own Nim toolchain.
+
+Setup ~libclang~ locally, no admin permissions are required, everthing is isolated to your system's temporary directory:
+#+BEGIN_EXAMPLE
+> nimble setup
+#+END_EXAMPLE
+
+This step takes a while, it downloads about 500MB and then builds for about 6-8 minutes, but it's quite a bit shorter than building ~LLVM~ and ~libclang~ from scratch which takes 4-7 hours. Also it builds the libraries once but as mentioned above it uses your temporary directory so if, like with some Linux distributions, ~/tmp~ or whatever is wiped on reboot you will have to run ~nimble setup~ again.
+
+#+BEGIN_EXAMPLE
+> nimble build
+#+END_EXAMPLE
+
+This will take a few seconds to statically link the application and yield a 95MB or so application called ~demo~ in this directory.
+
+For much faster building during development you can also skip those few seconds and link with the shared ~libclang~ libraries (also provided by [[https://github.com/deech/libclang-static-build][libclang-static-build]]) at runtime:
+#+BEGIN_EXAMPLE
+> nimble build -d:buildQuick
+#+END_EXAMPLE
+
+Now run that ~demo~ app against any C/C++ header file and if it contains enums their enumerators and values should be printed to ~stdout~ :
+#+BEGIN_EXAMPLE
+> ./demo /path/to/header.H
+#+END_EXAMPLE
+* API Stability
+A note on API stability, the Nim [[https://github.com/deech/libclang_bindings][Libclang bindings]] provides two sets of bindings in the following namespaces:
+- ~libclang_bindings/raw/...~ Straight C pass-through ~proc~'s that are offer no more than the API provided by ~libclang~ itself.
+- ~libclang_bindings/porcelain~ A fast evolving nicer layer over the raw calls.
+
+The former won't change much aside from bug fixes and adding missing bindings so you can depend on it for your own higher level abstractions but latter is subject to change based on my own needs and may even be moved to it's own repo over time.
